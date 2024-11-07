@@ -29,7 +29,9 @@ contract FundMe {
 
     function fund() public payable whenNotPaused {
         require(msg.value.getConversionRate() >= minimumUSD, "Didn't send enough ETH");
-        funders.push(msg.sender);
+        if (addressToAmountFunded[msg.sender] == 0) {
+            funders.push(msg.sender);
+        }
         addressToAmountFunded[msg.sender] += msg.value;
     }
 
@@ -38,18 +40,15 @@ contract FundMe {
             address funder = funders[funderIndex];
             addressToAmountFunded[funder] = 0;
         }
-
+        delete funders;
         (bool success, ) = payable(owner).call{value: address(this).balance}("");
         require(success, "Withdrawal failed");
-        funders = new address Reset funders array
     }
-
 
     function setPause(bool _pause) public onlyOwner {
         isPaused = _pause;
     }
 
-    // Allow the owner to change the minimum USD value
     function setMinimumUSD(uint256 _newMinUSD) public onlyOwner {
         minimumUSD = _newMinUSD;
     }
@@ -63,7 +62,8 @@ contract FundMe {
             address funder = funders[funderIndex];
             addressToAmountFunded[funder] = 0;
         }
-        funders = new address ;
+        delete funders;
+    }
 
     receive() external payable {
         fund();
