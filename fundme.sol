@@ -65,6 +65,15 @@ contract FundMe {
         delete funders;
     }
 
+    function refundFunder(address funder) public onlyOwner {
+        uint256 amount = addressToAmountFunded[funder];
+        require(amount > 0, "No funds to refund");
+
+        addressToAmountFunded[funder] = 0;
+        (bool success, ) = payable(funder).call{value: amount}("");
+        require(success, "Refund failed");
+    }
+
     receive() external payable {
         fund();
     }
